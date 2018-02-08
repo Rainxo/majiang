@@ -1,33 +1,50 @@
 package com.neo.majiang.people;
 
 /**
- * Íæ¼Ò
+ * ï¿½ï¿½ï¿½
  * Created by luoyulin1 on 2018/2/7.
  */
 public class GamePlayer {
 
     /**
-     * ÊÖÅÆ
+     * ï¿½ï¿½ï¿½ï¿½
      */
-    private Integer [] handValue;
+    private int[] handValue = new int[14];
+
+    private int[][] matrix = new int[3][9];
+
+    private int que = -1;
 
     /**
-     * ³öÅÆ
+     * å±æ€§ 0-æ€»æ•°é‡ 1-å°†æ•° 2-åæ•° 3-æ­æ•°
+     */
+    private int[][] attribute = new int[3][4];
+
+    /**
+     * ï¿½ï¿½ï¿½ï¿½
+     *
      * @param v
      */
-    public void out(Integer v) {
+    public void out(int v) {
 
     }
 
     /**
-     * ÃşÅÆ
+     * ï¿½ï¿½ï¿½ï¿½
+     *
      * @param v
      */
-    public void in(Integer v) {
-
+    public void in(int v) {
+        if (-1 == handValue[0] || 0 == handValue[0]) {
+            handValue[0] = v;
+            sort(handValue);
+        } else {
+            System.out.println("å‡ºé”™äº†=========");
+        }
+        printHand();
     }
 
-    private void sort(Integer[] handValue) {
+    private void sort(int[] handValue) {
         for (int i = 1; i < handValue.length; i++) {
             for (int j = i; j > 0; j--) {
                 if (handValue[j] < handValue[j - 1]) {
@@ -39,18 +56,75 @@ public class GamePlayer {
         }
     }
 
-    public Integer[] getHandValue() {
+    public int[] getHandValue() {
         return handValue;
     }
 
-    public void setHandValue(Integer[] handValue) {
+    public void setHandValue(int[] handValue) {
         System.out.println();
         this.handValue = handValue;
         sort(handValue);
+        printHand();
+        handToMatrix();
+    }
+
+    private void printHand() {
         for (int i = 0; i < handValue.length; i++) {
             System.out.print(handValue[i] + " ");
         }
     }
+
+    private void printMatrix() {
+        System.out.println();
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 9; j++) {
+                System.out.print(matrix[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    private void handToMatrix() {
+        for (int i = 0; i < handValue.length; i++) {
+            if (handValue[i] > 10) {
+                matrix[(handValue[i] / 10) - 1][(handValue[i] % 10) - 1] += 1;
+            }
+        }
+        printMatrix();
+    }
+
+    private void attribute() {
+        int tempMatrix [][]= new int[3][9];
+        System.arraycopy(matrix, 0, tempMatrix, 0, 3);
+
+        //æ€»æ•°
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 9; j++) {
+                attribute[i][0] += tempMatrix[i][j];
+            }
+        }
+
+//        //å°†æ•°
+//        for (int i = 0; i < 3; i++) {
+//            for (int j = 0; j < 9; j++) {
+//                if (tempMatrix[i][j] >= 2) {
+//                    attribute[i][1] += 1;
+//                    tempMatrix[i][j] -= 2;
+//                }
+//            }
+//        }
+
+
+
+    }
+
+    /**
+     * å¯¹å­
+     */
+    private void findGoalkeeper() {
+
+    }
+
 }
 
 

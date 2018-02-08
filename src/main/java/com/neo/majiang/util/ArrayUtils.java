@@ -12,7 +12,7 @@ public class ArrayUtils {
      * @param endPos
      * @param val
      */
-    public static void cover(Integer[] src, int startPos, int endPos,Integer val) {
+    public static void cover(int[] src, int startPos, int endPos,Integer val) {
         if (src.length > endPos && endPos >= startPos) {
             for (int i = startPos; i < endPos; i++) {
                    src[i] = val;

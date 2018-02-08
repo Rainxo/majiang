@@ -12,7 +12,9 @@ import java.util.Random;
  */
 public class Room {
 
-    private Integer[] card = {
+    private String model = "ABC-ABC-ABC-ABC-AA   AAA-ABC-ABC-ABC-AA   AAA-AAA-ABC-ABC-AA   AAA-AAA-AAA-ABC-AA   AAA-AAA-AAA-AAA-AA   AA-BB-CC-DD-EE-GG-FF   ";
+
+    private int[] card = {
             11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39,
             11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39,
             11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39,
@@ -22,16 +24,26 @@ public class Room {
 
     public Room() {
         randomCard();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 1; i++) {
             GamePlayer gp = new GamePlayer();
-            Integer[] handValue = new Integer[13];
-            System.arraycopy(card, i*13, handValue, 0, 13);
+            int[] handValue = new int[14];
+            System.arraycopy(card, i*14, handValue, 0, 14);
             gp.setHandValue(handValue);
             players.add(gp);
         }
 
         ArrayUtils.cover(card, 0, 52, -1);
         print();
+        System.out.println();
+        for (int i = 52; i < card.length; i++) {
+
+            if (i % 27 == 0) {
+                System.out.println();
+            }
+            System.out.print(card[i] + " ");
+        }
+
+
     }
 
     /**
@@ -39,7 +51,7 @@ public class Room {
      */
     private void randomCard() {
         Random random = new Random();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100; i++) {
             Integer r1 = random.nextInt(107);
             Integer r2 = random.nextInt(107);
             Integer temp = card[r1];
