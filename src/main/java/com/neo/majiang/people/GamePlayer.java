@@ -1,81 +1,50 @@
 package com.neo.majiang.people;
 
+import com.neo.majiang.room.Room;
+
 /**
- * ���
  * Created by luoyulin1 on 2018/2/7.
  */
 public class GamePlayer {
 
-    /**
-     * ����
-     */
-    private int[] handValue = new int[14];
 
-    private int[][] matrix = new int[3][9];
+    private int[] handValue = new int[Room.HAND_LENGTH];
 
+    private Integer[][] matrix =  {{0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    private Integer[][] pondMatrix = {{4, 4, 4, 4, 4, 4, 4, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4, 4}};
     private int que = -1;
 
     /**
-     * 属性 0-总数量 1-将数 2-坎数 3-搭数
-     */
-    private int[][] attribute = new int[3][4];
-
-    /**
-     * ����
+     * 构造函数
      *
-     * @param v
+     * @param handValue
      */
+    public GamePlayer(int[] handValue) {
+        this.handValue = handValue;
+        //初始化矩阵
+        initMatrix();
+        //初始化池子
+        initPond();
+
+        opt(0, 0, matrix[0], 0);
+    }
+
     public void out(int v) {
 
     }
 
-    /**
-     * ����
-     *
-     * @param v
-     */
     public void in(int v) {
-        if (-1 == handValue[0] || 0 == handValue[0]) {
-            handValue[0] = v;
-            sort(handValue);
-        } else {
-            System.out.println("出错了=========");
-        }
-        printHand();
+
     }
 
-    private void sort(int[] handValue) {
-        for (int i = 1; i < handValue.length; i++) {
-            for (int j = i; j > 0; j--) {
-                if (handValue[j] < handValue[j - 1]) {
-                    int temp = handValue[j - 1];
-                    handValue[j - 1] = handValue[j];
-                    handValue[j] = temp;
-                } else break;
-            }
-        }
-    }
-
-    public int[] getHandValue() {
-        return handValue;
-    }
-
-    public void setHandValue(int[] handValue) {
-        System.out.println();
-        this.handValue = handValue;
-        sort(handValue);
-        printHand();
-        handToMatrix();
-    }
-
-    private void printHand() {
-        for (int i = 0; i < handValue.length; i++) {
-            System.out.print(handValue[i] + " ");
+    private void printArr(Integer [] v) {
+        for (int i = 0; i < v.length; i++) {
+            System.out.print(v[i] + " ");
         }
     }
 
     private void printMatrix() {
-        System.out.println();
+        System.out.println("矩阵图");
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
                 System.out.print(matrix[i][j] + " ");
@@ -84,47 +53,93 @@ public class GamePlayer {
         }
     }
 
-    private void handToMatrix() {
+    private void opt(int row,Integer index, Integer[] now, Integer fictitiousSize) {
+
+        findjiang(row, index, now);
+        //
+
+        /**
+         *0 2 2 0 0 0 0 0 0
+         *将 f=2  0 2 2 0 0 0 0 0 0  index 1
+         *搭 f=1  0 1 1 0 0 0 0 0 0  index 1
+         *坎 f=3  0 2 2 0 0 0 0 0 0  index 1
+         *杠 f=4  0 2 2 0 0 0 0 0 0  index 1
+         *过 f=0  0 2 2 0 0 0 0 0 0  index 1
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         */
+
+    }
+
+    private int findjiang(int row,Integer index, Integer[] hand) {
+        int card = (row + 1) * 10 + (index + 1);
+        switch (hand[index]) {
+            case 0:
+                if (findMaxChance(card) > 1) {
+                    return 2;
+                }
+                return -1;
+            case 1:
+            if (findMaxChance(card) > 0) {
+                    return 1;
+                }
+                return -1;
+            case 2:
+                hand[index] = 0;
+                return 0;
+            case 3:
+                hand[index] = 1;
+                return 0;
+            case 4:
+                hand[index] = 2;
+               return 0;
+        }
+        return -1;
+    }
+
+
+    private void findDa() {
+
+    }
+
+
+    private void findKan() {
+
+    }
+
+    private void findGang() {
+
+    }
+
+    private void initMatrix() {
         for (int i = 0; i < handValue.length; i++) {
-            if (handValue[i] > 10) {
-                matrix[(handValue[i] / 10) - 1][(handValue[i] % 10) - 1] += 1;
-            }
+            toMatrix(handValue[i]);
         }
         printMatrix();
     }
 
-    private void attribute() {
-        int tempMatrix [][]= new int[3][9];
-        System.arraycopy(matrix, 0, tempMatrix, 0, 3);
-
-        //总数
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
-                attribute[i][0] += tempMatrix[i][j];
-            }
+    private void initPond() {
+        for (int i = 0; i < handValue.length; i++) {
+            pond(handValue[i]);
         }
-
-//        //将数
-//        for (int i = 0; i < 3; i++) {
-//            for (int j = 0; j < 9; j++) {
-//                if (tempMatrix[i][j] >= 2) {
-//                    attribute[i][1] += 1;
-//                    tempMatrix[i][j] -= 2;
-//                }
-//            }
-//        }
-
-
-
     }
 
-    /**
-     * 对子
-     */
-    private void findGoalkeeper() {
-
+    public void pond(int card) {
+        pondMatrix[card / 10 - 1][card % 10 - 1] -= 1;
     }
 
+    public void toMatrix(int card) {
+        matrix[card / 10 - 1][card % 10 - 1] += 1;
+    }
+
+    private int findMaxChance(int card) {
+        return pondMatrix[card / 10 - 1][card % 10 - 1];
+    }
 }
 
 
