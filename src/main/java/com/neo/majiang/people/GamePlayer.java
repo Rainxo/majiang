@@ -3,6 +3,7 @@ package com.neo.majiang.people;
 import com.neo.majiang.room.Room;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -12,6 +13,8 @@ public class GamePlayer {
 
 
     private int[] handValue = new int[Room.HAND_LENGTH];
+
+    private static final int DIE = -999; //死牌标识
 
     private Integer[][] matrix = {{0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}};
     private Integer[][] pondMatrix = {{4, 4, 4, 4, 4, 4, 4, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4, 4}, {4, 4, 4, 4, 4, 4, 4, 4, 4}};
@@ -28,10 +31,14 @@ public class GamePlayer {
         initMatrix();
         //初始化池子
         initPond();
+        Integer[] matrix = {2,1,1,1,1,1,3,1,1,};
+        Integer[] pondMatrix = {4,4,4,4,4,4,4,4,4};
 
-        opt(0, 0, matrix[0], "", 0);
-        opt(1, 0, matrix[1], "", 0);
-        opt(2, 0, matrix[2], "", 0);
+        //Record record = new Record(matrix[0],pondMatrix[0]);
+        Record record = new Record(matrix,pondMatrix);
+        opt(0, record);
+        //opt(1, 0, matrix[1], "", 0);
+        // opt(2, 0, matrix[2], "", 0);
         for (String s : re) {
             System.out.println(s);
         }
@@ -55,136 +62,170 @@ public class GamePlayer {
         System.out.println("矩阵图");
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
-                System.out.print(matrix[i][j] + " ");
+                System.out.print(matrix[i][j] + ",");
             }
             System.out.println();
         }
     }
+
     int min = Integer.MAX_VALUE;
     List<String> re = new ArrayList<>();
-    private void opt(int row, Integer index, Integer[] hand, String shape, int fictitious) {
-        if (index > 8) {
-            if (min > fictitious) {
-                min = fictitious;
-                re.clear();
-                re.add(shape + ":" + fictitious);
-            } else if (min == fictitious){
-                re.add(shape + ":" + fictitious);
-            }
+
+    private void opt(int row, Record record) {
+        if (record.getFictitiousSize() > 3) {
             return;
         }
-        Integer[] tempJ = new Integer [9];
-        System.arraycopy(hand, 0, tempJ, 0, 9);
-        int fj = findjiang(row, index, tempJ);
-        if (fj != -1) {
-            opt(row, index + 1, tempJ, shape + "_将", fictitious + fj);
+        if (record.getIndex() > 8) {
+            System.out.println(record.getOkCard());
+            System.out.println(Arrays.toString(record.getTempHandValue()));
+            return;
         }
 
-        Integer[] tempD = new Integer [9];
-        System.arraycopy(hand, 0, tempD, 0, 9);
-        int fd = findDa(row, index, tempD);
-        if (fd != -1) {
-            opt(row, index + 3, tempD, shape + "_搭_搭_搭", fictitious + fd);
+        Record fj = findjiang(row, record);
+        if (null != fj) {
+            opt(row, fj);
         }
 
-        Integer[] tempK = new Integer [9];
-        System.arraycopy(hand, 0, tempK, 0, 9);
-        int fk = findKan(row, index, tempK);
-        if (fk != -1) {
-            opt(row, index + 1, tempK, shape + "_坎", fictitious + fk);
+        Record fd = findDa(row, record);
+        if (null != fd) {
+            opt(row, fd);
         }
 
-        Integer[] tempG = new Integer [9];
-        System.arraycopy(hand, 0, tempG, 0, 9);
-        int fg = findGang(row, index, tempG);
-        if (fg != -1) {
-            opt(row, index + 1, tempG, shape + "_杠", fictitious + fg);
+        Record fk = findKan(row, record);
+        if (null != fk) {
+            opt(row, fk);
         }
-        int guo = guo(row, index, hand);
-        if (guo != -1) {
-            opt(row, index + 1, hand, shape + "_过", fictitious + guo);
+        Record fg = findGang(row, record);
+        if (null != fg) {
+            opt(row, fg);
+        }
+        Record guo = guo(row, record);
+        if (null != guo) {
+            opt(row, guo);
         }
     }
 
-    private int findjiang(int row, Integer index, Integer[] hand) {
-        int maxChance = findMaxChance(row, index);
-        int card = hand[index] - 2;
+    private Record findjiang(int row, Record oRecord) {
+        Record record = new Record(oRecord);
+
+        int maxChance = record.findMaxChance(row);
+        int card = record.getCard() - 2;
         if (card >= 0) {
-            hand[index] = card;
-            return 0;
+            record.setJiang();
+            record.setCard(card);
+            return record;
         } else {
             if (maxChance >= (Math.abs(card))) {
-                return Math.abs(card);
+                record.refreshPond(record.getIndex(), Math.abs(card));
+                record.setIndex(record.getIndex()+1);
+                return record;
             }
-            return -1;
+            return null;
         }
     }
 
 
-    private int findDa(int row, Integer index, Integer[] hand) {
+    private Record findDa(int row, Record oRecord) {
+        int index = oRecord.getIndex();
         if (index > 6) {
-            return -1;
+            return null;
         }
-        int maxChance1 = findMaxChance(row, index);
-        int maxChance2 = findMaxChance(row, index + 1);
-        int maxChance3 = findMaxChance(row, index + 2);
+        Record record = new Record(oRecord);
 
-        int card1 =  hand[index] - 1;
-        int card2 =  hand[index + 1] - 1;
-        int card3 =  hand[index + 2] - 1;
+        int maxChance1 = record.findMaxChance(index);
+        int maxChance2 = record.findMaxChance(index + 1);
+        int maxChance3 = record.findMaxChance(index + 2);
 
-        if (card1 > -1 && card2 > -1 && card3 > -1) {
-            hand[index] = card1;
-            hand[index+1] = card2;
-            hand[index+2] = card3;
-            return 0;
-        }
+        int card1 = record.getCard() - 1;
+        int card2 = record.getCard(index + 1) - 1;
+        int card3 = record.getCard(index + 2) - 1;
+
         if (card1 < 0 && maxChance1 < Math.abs(card1)) {
-            return - 1;
+            return null;
         }
         if (card2 < 0 && maxChance2 < Math.abs(card2)) {
-            return - 1;
+            return null;
         }
         if (card3 < 0 && maxChance3 < Math.abs(card3)) {
-            return - 1;
+            return null;
         }
-        return Math.abs(card1) + Math.abs(card2) + Math.abs(card3);
+
+        if (card1 >= 0 && card2 >= 0 && card3 >= 0) {
+            record.setDa();
+            record.setCard(card1);
+            record.setCard(index + 1, card2);
+            record.setCard(index + 2, card3);
+            return record;
+        }else{
+            if (card1 < 0) {
+                record.refreshPond(index, Math.abs(card1));
+                record.setIndex(record.getIndex() + 1);
+            } else {
+                record.setCard(card1);
+            }
+            if (card2 < 0) {
+                record.refreshPond(index + 1, Math.abs(card2));
+                record.setCard(index + 1, 0);
+            } else {
+                record.setCard(index + 1, card2);
+            }
+            if (card3 < 0) {
+                record.refreshPond(index + 2, Math.abs(card3));
+                record.setCard(index + 2, 0);
+            } else {
+                record.setCard(index + 2, card3);
+            }
+            return record;
+        }
     }
 
 
-    private int findKan(int row, Integer index, Integer[] hand) {
-        int maxChance = findMaxChance(row, index);
-        int card = hand[index] - 3;
+    private Record findKan(int row, Record oRecord) {
+        Record record = new Record(oRecord);
+
+        int maxChance = record.findMaxChance(row);
+        int card = record.getCard() - 3;
         if (card >= 0) {
-            hand[index] = card;
-            return 0;
+            record.setKan();
+            record.setCard(card);
+            return record;
         } else {
             if (maxChance >= (Math.abs(card))) {
-                return Math.abs(card);
+                record.refreshPond( record.getIndex(), Math.abs(card));
+                record.setIndex(record.getIndex() + 1);
+                return record;
             }
-            return -1;
+            return null;
         }
     }
 
-    private int findGang(int row, Integer index, Integer[] hand) {
-        int maxChance = findMaxChance(row, index);
-        int card = hand[index] - 4;
+    private Record findGang(int row, Record oRecord) {
+        Record record = new Record(oRecord);
+
+        int maxChance = record.findMaxChance(row);
+        int card = record.getCard() - 4;
         if (card >= 0) {
-            hand[index] = card;
-            return 0;
+            record.setGang();
+            record.setCard(card);
+            return record;
         } else {
             if (maxChance >= (Math.abs(card))) {
-                return Math.abs(card);
+                record.refreshPond(record.getIndex(), Math.abs(card));
+                record.setIndex(record.getIndex()+1);
+                return record;
             }
-            return -1;
+            return null;
         }
     }
 
-    private int guo(int row, Integer index, Integer[] hand) {
-        if (hand[index] == 0) {
-            return 0;
+    private Record guo(int row, Record oRecord) {
+        Record record = new Record(oRecord);
+
+        if (record.getCard() == 0) {
+            record.setCard(0);
+            return record;
         }
-        return -1;
+        return null;
     }
 
     private void initMatrix() {
